@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Code3 | Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: radial-gradient(circle at bottom right, #0f0f2d, #000010);
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .neon {
+      text-shadow: 0 0 5px #00ffae, 0 0 10px #00ffae, 0 0 20px #00ffae;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 10px #00ffae;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center text-white font-mono">
+  <div class="glass p-8 rounded-2xl shadow-xl w-full max-w-md animate-fade-in">
+    <h2 class="text-3xl font-bold mb-6 neon text-center">🔑 Welcome Back</h2>
+    
+    <form class="space-y-4">
+      <input type="email" placeholder="Email" class="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-500 placeholder-gray-300" />
+      <input type="password" placeholder="Password" class="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-500 placeholder-gray-300" />
+      <label class="flex items-center space-x-2 text-sm text-gray-300">
+        <input type="checkbox" id="rememberMe" class="accent-emerald-500" />
+        <span>Remember me</span>
+      </label>
+      <button type="submit" class="w-full py-2 mt-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md transition duration-300">
+        Log In ⚡
+      </button>
+    </form>
+
+    <div class="mt-6 text-center text-gray-400 text-sm">
+      <p>
+        Don’t have an account?
+        <a href="#" class="text-emerald-400 hover:underline">Sign Up</a>
+      </p>
+      <p class="mt-2">
+        <a href="#" class="hover:underline text-emerald-300">Forgot Password?</a>
+      </p>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.querySelector("form");
+      const emailInput = form.querySelector('input[type="email"]');
+      const passwordInput = form.querySelector('input[type="password"]');
+      const rememberMe = form.querySelector('#rememberMe');
+
+      // Prefill email and password if remembered
+      if (localStorage.getItem("rememberMe") === "true") {
+        emailInput.value = localStorage.getItem("rememberedEmail") || "";
+        passwordInput.value = localStorage.getItem("rememberedPassword") || "";
+        rememberMe.checked = true;
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        // Save email and password if "remember me" is checked
+        if (rememberMe.checked) {
+          localStorage.setItem("rememberMe", "true");
+          localStorage.setItem("rememberedEmail", email);
+          localStorage.setItem("rememberedPassword", password); // optionally save password
+        } else {
+          localStorage.removeItem("rememberMe");
+          localStorage.removeItem("rememberedEmail");
+          localStorage.removeItem("rememberedPassword");
+        }
+
+        try {
+          const response = await fetch("http://localhost:8000/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+          });
+
+          const data = await response.json();
+
+          if (data.status === "success") {
+            alert("Login successful! ✅");
+            localStorage.setItem("token", data.token); // Store session token
+            // Redirect if needed
+            window.location.href = "index.html";
+          } else {
+            alert(data.message);
+          }
+        } catch (error) {
+          console.error("Login error:", error);
+          alert("Something went wrong. Try again.");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
